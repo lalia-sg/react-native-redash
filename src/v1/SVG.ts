@@ -1,6 +1,5 @@
 import Animated, { interpolateNode } from "react-native-reanimated";
-import parseSVG from "parse-svg-path";
-import absSVG from "abs-svg-path";
+import { parseSVG, makeAbsolute, Command } from "svg-path-parser";
 import normalizeSVG from "normalize-svg-path";
 
 import { get } from "./Array";
@@ -81,9 +80,36 @@ export interface ReanimatedPath {
   p3y: number[];
 }
 
+function transformAbsolutePath(path: Command[]) {
+  return path.map((command) => {
+    switch (command.code) {
+      case "C":
+        return [
+          "C",
+          command.x1,
+          command.y1,
+          command.x2,
+          command.y2,
+          command.x,
+          command.y,
+        ];
+      case "M":
+        return ["M", command.x, command.y];
+      case "Z":
+        return ["Z"];
+      case "Q":
+        return ["Q", command.x1, command.y1, command.x, command.y];
+      default:
+        console.error("Failed to parse", command);
+        return [];
+    }
+  });
+}
+
 export const parsePath = (d: string): ReanimatedPath => {
+  const absoluteValues = makeAbsolute(parseSVG(d));
   const [move, ...curves]: SVGNormalizedCommands = normalizeSVG(
-    absSVG(parseSVG(d))
+    transformAbsolutePath(absoluteValues)
   );
   const parts: BezierCubicCurve[] = curves.map((curve, index) => {
     const prevCurve = curves[index - 1];

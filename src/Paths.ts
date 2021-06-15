@@ -1,9 +1,5 @@
 import Animated, { interpolate } from "react-native-reanimated";
-import {
-  parseSVG as newParseSVG,
-  makeAbsolute,
-  Command,
-} from "svg-path-parser";
+import { parseSVG, makeAbsolute, Command } from "svg-path-parser";
 import normalizeSVG from "normalize-svg-path";
 
 import { Vector } from "./Vectors";
@@ -73,11 +69,11 @@ function transformAbsolutePath(path: Command[]) {
  * The SVG is normalized to have absolute values and to be approximated to a sequence of Bèzier curves.
  */
 export const parse = (d: string): Path => {
-  const absoluteValues = makeAbsolute(newParseSVG(d));
+  const absoluteValues = makeAbsolute(parseSVG(d));
   const segments: SVGNormalizedCommands = normalizeSVG(
     transformAbsolutePath(absoluteValues)
   );
-  // const segments: SVGNormalizedCommands = normalizeSVG(absSVG(parseSVG(d)));
+
   const path = createPath({ x: segments[0][1], y: segments[0][2] });
   segments.forEach((segment) => {
     if (segment[0] === "Z") {
