@@ -34,6 +34,7 @@
     "@types/jest": "^25.1.4",
     "@types/react": "*",
     "@types/react-native": "0.63.20",
+    "@types/svg-path-parser": "^1.1.1",
     "babel-jest": "^24.9.0",
     "babel-preset-expo": "^8.0.0",
     "eslint": "^7.8.1",
@@ -63,8 +64,7 @@
     ]
   },
   "dependencies": {
-    "abs-svg-path": "^0.1.1",
     "normalize-svg-path": "^1.0.1",
-    "parse-svg-path": "^0.1.2"
+    "svg-path-parser": "^1.1.0"
   }
 }

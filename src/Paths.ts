@@ -1,6 +1,9 @@
 import Animated, { interpolate } from "react-native-reanimated";
-import parseSVG from "parse-svg-path";
-import absSVG from "abs-svg-path";
+import {
+  parseSVG as newParseSVG,
+  makeAbsolute,
+  Command,
+} from "svg-path-parser";
 import normalizeSVG from "normalize-svg-path";
 
 import { Vector } from "./Vectors";
@@ -38,13 +41,43 @@ export const serialize = (path: Path) => {
     .join(" ")}${path.close ? "Z" : ""}`;
 };
 
+function transformAbsolutePath(path: Command[]) {
+  return path.map((command) => {
+    switch (command.code) {
+      case "C":
+        return [
+          "C",
+          command.x1,
+          command.y1,
+          command.x2,
+          command.y2,
+          command.x,
+          command.y,
+        ];
+      case "M":
+        return ["M", command.x, command.y];
+      case "Z":
+        return ["Z"];
+      case "Q":
+        return ["Q", command.x1, command.y1, command.x, command.y];
+      default:
+        console.error("Failed to parse", command);
+        return [];
+    }
+  });
+}
+
 /**
  * @description ⚠️ this function cannot run on the UI thread. It must be executed on the JS thread
  * @summary Parse an SVG path into a sequence of Bèzier curves.
  * The SVG is normalized to have absolute values and to be approximated to a sequence of Bèzier curves.
  */
 export const parse = (d: string): Path => {
-  const segments: SVGNormalizedCommands = normalizeSVG(absSVG(parseSVG(d)));
+  const absoluteValues = makeAbsolute(newParseSVG(d));
+  const segments: SVGNormalizedCommands = normalizeSVG(
+    transformAbsolutePath(absoluteValues)
+  );
+  // const segments: SVGNormalizedCommands = normalizeSVG(absSVG(parseSVG(d)));
   const path = createPath({ x: segments[0][1], y: segments[0][2] });
   segments.forEach((segment) => {
     if (segment[0] === "Z") {
